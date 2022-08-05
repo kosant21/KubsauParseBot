@@ -1,11 +1,21 @@
 package kubsauParseBot.service;
 
 import kubsauParseBot.config.BotConfig;
+import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
@@ -33,9 +43,10 @@ public class TelegramBot extends TelegramLongPollingBot {
             long chat_id = update.getMessage().getChatId();
 
             switch(messageText){
-                case "/start":/*
-                    parseKubsau();*/
-                    startCommandReceived(chat_id, update.getMessage().getChat().getFirstName());
+                case "/start":
+                    //parseKubsau();
+                    startCommandReceived(chat_id, parseKubsau());
+                    //startCommandReceived(chat_id, update.getMessage().getChat().getFirstName());
                     break;
                 default: sendMessage(chat_id, "You're wrong");
             }
@@ -44,9 +55,46 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    /*private void parseKubsau(){
+    private String parseKubsau(){
+        try{
+            var document = Jsoup
+                    //connect("https://kubsau.ru/entrant/lists/")
+                    .connect("https://kubsau.ru/upload/slpd/in_lists/main/139_09.04.02_000000869_%D0%94.html?0.8338041724968897")
+                    .sslSocketFactory(socketFactory())
+                    .get();
 
-    }*/
+
+
+            var titleElement = document.selectFirst("title");
+            return titleElement.text();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private SSLSocketFactory socketFactory() {
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        }};
+
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            return sslContext.getSocketFactory();
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException("Failed to create a SSL socket factory", e);
+        }
+    }
 
     private void startCommandReceived(long chatId, String name){
         String answer = "Hi, " + name + ", nice to meet you!";
