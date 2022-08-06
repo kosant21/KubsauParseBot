@@ -15,7 +15,7 @@
     <description>KubsauParseBot</description>
     <properties>
         <java.version>11</java.version>
-        <telegram.version>5.6.0</telegram.version>
+        <telegram.version>6.1.0</telegram.version>
     </properties>
     <dependencies>
         <dependency>
