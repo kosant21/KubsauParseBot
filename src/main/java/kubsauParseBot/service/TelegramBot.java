@@ -106,7 +106,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
         }
         for (int i = 0; i < mas.length; i++) {
-            mas[i][0] = String.valueOf(i + 1);
+            mas[i][0] = String.valueOf(i + 1) + ".";
         }
         return mas;
     }
