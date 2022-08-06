@@ -84,7 +84,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 results[i][4] = original.equals("Оригинал") ? "О" : "К";
             }
             results = sortStringArray(results);
-            System.out.println(Arrays.deepToString(results));
             String message = message(results);
 
             return message;
@@ -141,10 +140,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void startCommandReceived(long chatId, String name) {
-        String answer = "Hi, " + name + ", nice to meet you!";
-
-        sendMessage(chatId, answer);
+    private void startCommandReceived(long chatId, String list) {
+        //String answer = "Hi, " + name + ", nice to meet you!";
+        //String answer = list;
+        sendMessage(chatId, list);
     }
 
     private void sendMessage(long chatId, String textToSend) {
