@@ -85,6 +85,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             results = sortStringArray(results);
             System.out.println(Arrays.deepToString(results));
+
+
             return rowElements.text();
         } catch (IOException e) {
             e.printStackTrace();
@@ -96,7 +98,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private String[][] sortStringArray(String mas[][]) {
         for (int i = 0; i < mas.length; i++) {
             for (int j = 0; j < mas.length - 1; j++) {
-                if (Integer.parseInt(mas[j][2]) < Integer.parseInt(mas[j + 1][2])) {
+                if (Integer.valueOf(mas[j][2]) < Integer.valueOf(mas[j + 1][2])) {
                     var temp = mas[j];
                     mas[j] = mas[j + 1];
                     mas[j + 1] = temp;
