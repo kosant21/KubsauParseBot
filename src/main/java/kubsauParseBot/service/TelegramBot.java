@@ -5,7 +5,11 @@ import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.net.ssl.SSLContext;
@@ -16,7 +20,9 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
@@ -39,15 +45,50 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        if (update.hasCallbackQuery()) {
+            long chat_id = update.getCallbackQuery().getMessage().getChatId();
+            //handleCallback(chat_id, update.getCallbackQuery());
+            startCommandReceived(chat_id, parseKubsau(update.getCallbackQuery().getData()));
+        }
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
             long chat_id = update.getMessage().getChatId();
 
             switch (messageText) {
                 case "/start":
+                    //List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+                    List<InlineKeyboardButton> buttons = new ArrayList<>();
+                    List directions = new ArrayList<>();
+                    directions.add("ИТ (Очное)");
+                    directions.add("ПИ (Очное)");
+                    directions.add("ИТ (Заочное)");
+                    directions.add("ПИ (Зачное)");
+
+                    for (var el : directions) {
+                        buttons.add(
+                                InlineKeyboardButton.builder()
+                                        .text(el.toString())
+                                        .callbackData(el.toString())
+                                        .build()
+                        );
+                    }
+
                     //parseKubsau();
-                    startCommandReceived(chat_id, parseKubsau());
-                    //startCommandReceived(chat_id, update.getMessage().getChat().getFirstName());
+                    //startCommandReceived(chat_id, parseKubsau(update.getCallbackQuery().getData()));
+
+                    //startCommandReceived(chat_id, "Выбери направление");
+                    try {
+                        execute(
+                                SendMessage.builder()
+                                        .text("Выбери направление")
+                                        .chatId(chat_id)
+                                        .replyMarkup(InlineKeyboardMarkup.builder().keyboard(Collections.singleton(buttons)).build())
+                                        .build());
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+
+
                     break;
                 default:
                     sendMessage(chat_id, "You're wrong");
@@ -57,11 +98,36 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private String parseKubsau() {
+    private void handleCallback(long chat_id, CallbackQuery callbackQuery) {
+        Message message = callbackQuery.getMessage();
+        String direction = callbackQuery.getData();
+        sendMessage(chat_id, direction);
+
+    }
+
+    private String parseKubsau(String data) {
+        String url;
+        switch (data) {
+            case "ИТ (Очное)":
+                url = "https://kubsau.ru/upload/slpd/in_lists/main/139_09.04.02_000000869_%D0%94.html?0.8338041724968897";
+                break;
+            case "ПИ (Очное)":
+                url = "https://kubsau.ru/upload/slpd/in_lists/main/143_09.04.03_000000875_%D0%94.html?0.2018514914147438";
+                break;
+            case "ИТ (Заочное)":
+                url = "https://kubsau.ru/upload/slpd/in_lists/main/137_09.04.02_000000866_%D0%97.html?0.2775243817824298";
+                break;
+            case "ПИ (Зачное)":
+                url = "https://kubsau.ru/upload/slpd/in_lists/main/179_09.04.03_000000917_%D0%97.html?0.942003177762937";
+                break;
+            default:
+                url = "https://kubsau.ru/upload/slpd/in_lists/main/139_09.04.02_000000869_%D0%94.html?0.8338041724968897";
+        }
+
 
         try {
             var document = Jsoup
-                    .connect("https://kubsau.ru/upload/slpd/in_lists/main/139_09.04.02_000000869_%D0%94.html?0.8338041724968897")
+                    .connect(url)
                     .sslSocketFactory(socketFactory())
                     .get();
 
@@ -113,7 +179,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private String message(String mas[][]) {
         String message = "";
         for (int i = 0; i < mas.length; i++) {
-            message += mas[i][0] + " " + mas[i][1] + " "+ mas[i][2] + " " + mas[i][3] + " " + mas[i][4] + "\n";
+            message += mas[i][0] + " " + mas[i][1] + " " + mas[i][2] + " " + mas[i][3] + " " + mas[i][4] + "\n";
         }
         return message;
     }
