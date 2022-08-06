@@ -85,9 +85,9 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             results = sortStringArray(results);
             System.out.println(Arrays.deepToString(results));
+            String message = message(results);
 
-
-            return rowElements.text();
+            return message;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -109,6 +109,14 @@ public class TelegramBot extends TelegramLongPollingBot {
             mas[i][0] = String.valueOf(i + 1) + ".";
         }
         return mas;
+    }
+
+    private String message(String mas[][]) {
+        String message = "";
+        for (int i = 0; i < mas.length; i++) {
+            message += mas[i][0] + " " + mas[i][1] + " "+ mas[i][2] + " " + mas[i][3] + " " + mas[i][4] + "\n";
+        }
+        return message;
     }
 
     private SSLSocketFactory socketFactory() {
